@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hedef 100 | Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <!-- Ekran görüntüsü almak için kütüphane -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
         :root {
@@ -65,20 +67,11 @@
         button {
             flex: 1; padding: 12px; border: none; border-radius: 8px;
             font-weight: 700; cursor: pointer; transition: 0.3s;
-            font-family: 'Orbitron', sans-serif; font-size: 0.75rem;
-            color: white;
+            font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: white;
         }
 
         .btn-undo { background: var(--success); }
-        /* Geri al hakkı bitince butonun hali */
-        .btn-undo:disabled {
-            background: var(--disabled) !important;
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none !important;
-            filter: grayscale(1);
-        }
-
+        .btn-undo:disabled { background: var(--disabled) !important; opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
         .btn-reset { background: var(--danger); }
         .btn-audio { background: #475569; flex: 0.5; }
 
@@ -88,35 +81,48 @@
         }
 
         .leaderboard h3 { font-family: 'Orbitron'; font-size: 1rem; margin-bottom: 10px; text-align: center; color: var(--accent); }
-        
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th { text-align: left; opacity: 0.6; padding-bottom: 5px; }
         td { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        /* MODAL (SONUÇ EKRANI) STİLLERİ */
+        #resultModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.9); display: none;
+            align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+        }
+
+        .result-card {
+            background: var(--card-bg); padding: 30px; border-radius: 20px;
+            text-align: center; border: 2px solid var(--primary);
+            max-width: 380px; width: 100%; position: relative;
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+        }
+
+        .result-card h2 { font-family: 'Orbitron'; color: var(--primary); margin-bottom: 5px; }
+        .result-score { font-size: 4.5rem; font-weight: 800; color: var(--accent); line-height: 1; margin: 15px 0; }
+        .result-msg { font-weight: 600; color: var(--success); margin-bottom: 20px; font-style: italic; }
+        .result-meta { display: flex; justify-content: space-around; margin-bottom: 25px; opacity: 0.9; }
+
+        .modal-btns { display: flex; gap: 10px; }
+        .btn-download { background: var(--secondary); flex: 1; }
+        .btn-replay { background: var(--primary); flex: 1; }
     </style>
 </head>
-<body>
+<body onclick="enableAudio()">
 
     <h1>HEDEF 100</h1>
 
     <div class="stats-container">
-        <div class="stat-item">
-            <span class="stat-value" id="scoreDisplay">0</span>
-            <span class="stat-label">SKOR</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value" id="timerDisplay">00:00</span>
-            <span class="stat-label">SÜRE</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value" id="undoDisplay">3</span>
-            <span class="stat-label">HAK</span>
-        </div>
+        <div class="stat-item"><span class="stat-value" id="scoreDisplay">0</span><span class="stat-label">SKOR</span></div>
+        <div class="stat-item"><span class="stat-value" id="timerDisplay">00:00</span><span class="stat-label">SÜRE</span></div>
+        <div class="stat-item"><span class="stat-value" id="undoDisplay">3</span><span class="stat-label">HAK</span></div>
     </div>
 
     <div id="game-board"></div>
 
     <div class="controls">
-        <button class="btn-audio" id="muteBtn" onclick="toggleMute()">MÜZİK: KAPALI</button>
+        <button class="btn-audio" id="muteBtn" onclick="toggleMute(event)">MÜZİK: KAPALI</button>
         <button class="btn-undo" id="undoBtn" onclick="undoMove()">GERİ AL</button>
         <button class="btn-reset" onclick="resetGame()">SIFIRLA</button>
     </div>
@@ -124,35 +130,50 @@
     <div class="leaderboard">
         <h3>🏆 EN YÜKSEK SKORLAR</h3>
         <table id="leaderboardTable">
-            <thead>
-                <tr><th>#</th><th>Skor</th><th>Süre</th><th>Tarih</th></tr>
-            </thead>
+            <thead><tr><th>#</th><th>Skor</th><th>Süre</th><th>Tarih</th></tr></thead>
             <tbody id="leaderboardBody"></tbody>
         </table>
     </div>
 
-    <!-- Ses Kaynakları (Eğer bunlar çalışmazsa, tarayıcıda doğrudan linkleri açıp yüklenip yüklenmediğini kontrol edebilirsin) -->
-    <audio id="bgMusic" loop preload="auto">
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="clickSound" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="errorSound" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-negative-tone-interface-608.mp3" type="audio/mpeg">
-    </audio>
+    <!-- SONUÇ MODAL -->
+    <div id="resultModal">
+        <div class="result-card" id="captureArea">
+            <h2 style="font-size: 1.2rem; opacity: 0.7;">HEDEF 100</h2>
+            <p style="text-transform: uppercase; letter-spacing: 2px;">Oyun Tamamlandı!</p>
+            <div class="result-score" id="finalScore">0</div>
+            <p class="result-msg">"Bakalım beni geçebilecek misin?"</p>
+            <div class="result-meta">
+                <div><small>SÜRE</small><br><strong id="finalTime">00:00</strong></div>
+                <div><small>TARİH</small><br><strong id="finalDate">--</strong></div>
+            </div>
+            <div class="modal-btns" id="actionBtns">
+                <button class="btn-download" onclick="downloadResult()">KAYDET / PAYLAŞ</button>
+                <button class="btn-replay" onclick="closeModal()">TEKRAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ses Dosyaları -->
+    <audio id="bgMusic" loop preload="auto"><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg"></audio>
 
     <script>
         const GRID_SIZE = 10;
         let score = 0, history = [], undoRights = 3, timer = 0, timerInterval = null, isMusicPlaying = false;
-        
+        let audioEnabled = false;
+
+        // Efekt Sesleri (JS içinde tanımlıyoruz)
+        const sfxClick = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3');
+        const sfxError = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-negative-tone-interface-608.mp3');
+
         const board = document.getElementById('game-board');
         const bgMusic = document.getElementById('bgMusic');
-        const clickSound = document.getElementById('clickSound');
-        const errorSound = document.getElementById('errorSound');
-
-        // Müzik sesini biraz kısalaım ki kullanıcıyı yormasın
         bgMusic.volume = 0.3;
+
+        function enableAudio() {
+            if (audioEnabled) return;
+            audioEnabled = true;
+            console.log("Ses sistemi aktif.");
+        }
 
         function initBoard() {
             board.innerHTML = '';
@@ -171,14 +192,13 @@
 
         function handleCellClick(x, y) {
             const target = document.getElementById(`x${x}y${y}`);
-            
             if (!target.classList.contains('clickable')) {
-                playSound(errorSound);
+                sfxError.currentTime = 0; sfxError.play().catch(()=>{});
                 return;
             }
 
             if (score === 0) startTimer();
-            playSound(clickSound);
+            sfxClick.currentTime = 0; sfxClick.play().catch(()=>{});
 
             const prevLast = document.querySelector('.last-clicked');
             if (prevLast) {
@@ -215,7 +235,7 @@
                 }
             });
 
-            if (possibleMoves === 0 && score < 100) endGame();
+            if (possibleMoves === 0 && score > 0) endGame();
         }
 
         function startTimer() {
@@ -231,15 +251,21 @@
         function endGame() {
             clearInterval(timerInterval);
             saveScore(score, timer);
-            setTimeout(() => alert(`Oyun Bitti! Skorunuz: ${score}`), 500);
+            
+            // Modern Modal Gösterimi
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('finalTime').innerText = document.getElementById('timerDisplay').innerText;
+            document.getElementById('finalDate').innerText = new Date().toLocaleDateString('tr-TR');
+            document.getElementById('resultModal').style.display = 'flex';
         }
 
-        function toggleMute() {
+        function toggleMute(e) {
+            e.stopPropagation();
             if (!isMusicPlaying) {
                 bgMusic.play().then(() => {
                     isMusicPlaying = true;
                     document.getElementById('muteBtn').innerText = "MÜZİK: AÇIK";
-                }).catch(e => console.log("Müzik başlatılamadı:", e));
+                }).catch(e => console.log("Hata:", e));
             } else {
                 bgMusic.pause();
                 isMusicPlaying = false;
@@ -247,22 +273,13 @@
             }
         }
 
-        function playSound(audioElement) {
-            // Sesi başa sar ve oynat (Hızlı tıklamalarda sorun olmaması için)
-            audioElement.currentTime = 0;
-            audioElement.play().catch(e => console.log("Ses oynatılamadı:", e));
-        }
-
         function undoMove() {
             if (undoRights <= 0 || history.length <= 1) return;
-
             const lastMove = history.pop();
             const cell = document.getElementById(`x${lastMove.x}y${lastMove.y}`);
             cell.innerText = '';
             cell.classList.remove('clicked', 'last-clicked');
-
-            undoRights--;
-            score--;
+            undoRights--; score--;
 
             const newLast = history[history.length - 1];
             if (newLast) {
@@ -271,21 +288,13 @@
                 newLastCell.classList.add('last-clicked');
                 calculateNextMoves(newLast.x, newLast.y);
             }
-
             updateUI();
         }
 
         function updateUI() {
             document.getElementById('scoreDisplay').innerText = score;
             document.getElementById('undoDisplay').innerText = undoRights;
-            
-            // Butonun inaktiflik kontrolü
-            const undoBtn = document.getElementById('undoBtn');
-            if (undoRights <= 0 || history.length <= 1) {
-                undoBtn.disabled = true;
-            } else {
-                undoBtn.disabled = false;
-            }
+            document.getElementById('undoBtn').disabled = (undoRights <= 0 || history.length <= 1);
         }
 
         function saveScore(s, t) {
@@ -300,24 +309,38 @@
             const scores = JSON.parse(localStorage.getItem('h100ScoresPro') || '[]');
             const body = document.getElementById('leaderboardBody');
             body.innerHTML = scores.map((item, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><b>${item.score}</b></td>
-                    <td>${item.time}sn</td>
-                    <td>${item.date}</td>
-                </tr>
+                <tr><td>${index + 1}</td><td><b>${item.score}</b></td><td>${item.time}sn</td><td>${item.date}</td></tr>
             `).join('');
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+            resetGame();
         }
 
         function resetGame() {
             clearInterval(timerInterval);
-            timerInterval = null;
-            timer = 0;
+            timerInterval = null; timer = 0;
             document.getElementById('timerDisplay').innerText = "00:00";
-            score = 0;
-            history = [];
-            undoRights = 3;
+            score = 0; history = []; undoRights = 3;
             initBoard();
+        }
+
+        // EKRAN GÖRÜNTÜSÜ ALMA FONKSİYONU
+        function downloadResult() {
+            const btns = document.getElementById('actionBtns');
+            btns.style.display = 'none'; // Kaydederken butonlar görünmesin
+
+            html2canvas(document.querySelector("#captureArea"), {
+                backgroundColor: "#1e293b",
+                borderRadius: 20
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Hedef100_Skorum_${score}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                btns.style.display = 'flex'; // Butonları geri getir
+            });
         }
 
         initBoard();
