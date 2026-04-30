@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hedef 100 | Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
-    <!-- Ekran görüntüsü almak için kütüphane -->
+    <!-- Ekran görüntüsü kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
@@ -49,17 +49,16 @@
             aspect-ratio: 1/1; background: rgba(255,255,255,0.03); border-radius: 4px;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.1rem; font-weight: 600; transition: all 0.2s;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.05); color: #fff;
         }
 
         .cell.clickable {
             background: rgba(56, 189, 248, 0.15); cursor: pointer;
             border-color: var(--primary); animation: pulse 1.5s infinite;
         }
-
         @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        .cell.clicked { background: var(--secondary); color: white; }
+        .cell.clicked { background: var(--secondary); }
         .cell.last-clicked { background: var(--accent); transform: scale(1.08); box-shadow: 0 0 15px var(--accent); }
 
         .controls { margin-top: 20px; display: flex; gap: 10px; width: 100%; max-width: 450px; }
@@ -79,37 +78,27 @@
             margin-top: 30px; width: 100%; max-width: 450px;
             background: rgba(30, 41, 59, 0.5); padding: 15px; border-radius: 10px;
         }
-
         .leaderboard h3 { font-family: 'Orbitron'; font-size: 1rem; margin-bottom: 10px; text-align: center; color: var(--accent); }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { text-align: left; opacity: 0.6; padding-bottom: 5px; }
         td { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        /* MODAL (SONUÇ EKRANI) STİLLERİ */
+        /* SONUÇ MODAL */
         #resultModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.9); display: none;
+            background: rgba(15, 23, 42, 0.95); display: none;
             align-items: center; justify-content: center; z-index: 1000; padding: 20px;
         }
-
         .result-card {
             background: var(--card-bg); padding: 30px; border-radius: 20px;
             text-align: center; border: 2px solid var(--primary);
-            max-width: 380px; width: 100%; position: relative;
-            box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+            max-width: 380px; width: 100%; color: white;
         }
-
-        .result-card h2 { font-family: 'Orbitron'; color: var(--primary); margin-bottom: 5px; }
-        .result-score { font-size: 4.5rem; font-weight: 800; color: var(--accent); line-height: 1; margin: 15px 0; }
-        .result-msg { font-weight: 600; color: var(--success); margin-bottom: 20px; font-style: italic; }
-        .result-meta { display: flex; justify-content: space-around; margin-bottom: 25px; opacity: 0.9; }
-
-        .modal-btns { display: flex; gap: 10px; }
-        .btn-download { background: var(--secondary); flex: 1; }
-        .btn-replay { background: var(--primary); flex: 1; }
+        .result-score { font-size: 5rem; font-weight: 800; color: var(--accent); line-height: 1; margin: 10px 0; }
+        .result-msg { font-weight: 600; color: var(--primary); margin-bottom: 20px; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
     </style>
 </head>
-<body onclick="enableAudio()">
+<body onclick="unlockAudio()">
 
     <h1>HEDEF 100</h1>
 
@@ -122,60 +111,54 @@
     <div id="game-board"></div>
 
     <div class="controls">
-        <button class="btn-audio" id="muteBtn" onclick="toggleMute(event)">MÜZİK: KAPALI</button>
+        <button class="btn-audio" id="muteBtn" onclick="toggleMute(event)">🎵 KAPALI</button>
         <button class="btn-undo" id="undoBtn" onclick="undoMove()">GERİ AL</button>
         <button class="btn-reset" onclick="resetGame()">SIFIRLA</button>
     </div>
 
     <div class="leaderboard">
-        <h3>🏆 EN YÜKSEK SKORLAR</h3>
+        <h3>🏆 TOP 5 SKORLAR</h3>
         <table id="leaderboardTable">
-            <thead><tr><th>#</th><th>Skor</th><th>Süre</th><th>Tarih</th></tr></thead>
             <tbody id="leaderboardBody"></tbody>
         </table>
     </div>
 
-    <!-- SONUÇ MODAL -->
+    <!-- SONUÇ EKRANI -->
     <div id="resultModal">
         <div class="result-card" id="captureArea">
-            <h2 style="font-size: 1.2rem; opacity: 0.7;">HEDEF 100</h2>
-            <p style="text-transform: uppercase; letter-spacing: 2px;">Oyun Tamamlandı!</p>
-            <div class="result-score" id="finalScore">0</div>
+            <h2 style="font-family: Orbitron; font-size: 1.2rem; color: #38bdf8;">HEDEF 100</h2>
+            <p style="margin-top: 10px; opacity: 0.8;">OYUN TAMAMLANDI</p>
+            <div class="result-score" id="finalScoreText">0</div>
             <p class="result-msg">"Bakalım beni geçebilecek misin?"</p>
-            <div class="result-meta">
-                <div><small>SÜRE</small><br><strong id="finalTime">00:00</strong></div>
-                <div><small>TARİH</small><br><strong id="finalDate">--</strong></div>
+            <div style="font-size: 0.9rem; margin-bottom: 20px; opacity: 0.7;">
+                Süre: <span id="finalTimeText">00:00</span> | Tarih: <span id="finalDateText"></span>
             </div>
-            <div class="modal-btns" id="actionBtns">
-                <button class="btn-download" onclick="downloadResult()">KAYDET / PAYLAŞ</button>
-                <button class="btn-replay" onclick="closeModal()">TEKRAR</button>
+            <div class="modal-btns">
+                <button style="background: var(--success);" onclick="generateAndShare()">📱 PAYLAŞ / KAYDET</button>
+                <button style="background: var(--danger);" onclick="closeModal()">KAPAT</button>
             </div>
         </div>
     </div>
 
-    <!-- Ses Dosyaları -->
-    <audio id="bgMusic" loop preload="auto"><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg"></audio>
+    <!-- Sesler -->
+    <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 
     <script>
         const GRID_SIZE = 10;
         let score = 0, history = [], undoRights = 3, timer = 0, timerInterval = null, isMusicPlaying = false;
-        let audioEnabled = false;
+        let audioUnlocked = false;
 
-        // Efekt Sesleri (JS içinde tanımlıyoruz)
-        const sfxClick = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3');
-        const sfxError = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-negative-tone-interface-608.mp3');
+        // Ses Efektleri
+        const clickSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3');
+        const errorSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-negative-tone-interface-608.mp3');
 
-        const board = document.getElementById('game-board');
-        const bgMusic = document.getElementById('bgMusic');
-        bgMusic.volume = 0.3;
-
-        function enableAudio() {
-            if (audioEnabled) return;
-            audioEnabled = true;
-            console.log("Ses sistemi aktif.");
+        function unlockAudio() {
+            if (audioUnlocked) return;
+            clickSfx.play().then(() => { clickSfx.pause(); audioUnlocked = true; });
         }
 
         function initBoard() {
+            const board = document.getElementById('game-board');
             board.innerHTML = '';
             for (let y = 1; y <= GRID_SIZE; y++) {
                 for (let x = 1; x <= GRID_SIZE; x++) {
@@ -193,24 +176,20 @@
         function handleCellClick(x, y) {
             const target = document.getElementById(`x${x}y${y}`);
             if (!target.classList.contains('clickable')) {
-                sfxError.currentTime = 0; sfxError.play().catch(()=>{});
+                errorSfx.currentTime = 0; errorSfx.play();
                 return;
             }
 
             if (score === 0) startTimer();
-            sfxClick.currentTime = 0; sfxClick.play().catch(()=>{});
+            clickSfx.currentTime = 0; clickSfx.play();
 
             const prevLast = document.querySelector('.last-clicked');
-            if (prevLast) {
-                prevLast.classList.remove('last-clicked');
-                prevLast.classList.add('clicked');
-            }
+            if (prevLast) { prevLast.classList.remove('last-clicked'); prevLast.classList.add('clicked'); }
 
             score++;
             target.innerText = score;
             target.classList.add('clicked', 'last-clicked');
             target.classList.remove('clickable');
-            
             history.push({x, y});
             updateUI();
             calculateNextMoves(x, y);
@@ -218,23 +197,15 @@
 
         function calculateNextMoves(x, y) {
             document.querySelectorAll('.cell.clickable').forEach(c => c.classList.remove('clickable'));
-            const moves = [
-                {dx:3, dy:0}, {dx:-3, dy:0}, {dx:0, dy:3}, {dx:0, dy:-3},
-                {dx:2, dy:2}, {dx:-2, dy:-2}, {dx:2, dy:-2}, {dx:-2, dy:2}
-            ];
-
+            const moves = [{dx:3,dy:0},{dx:-3,dy:0},{dx:0,dy:3},{dx:0,dy:-3},{dx:2,dy:2},{dx:-2,dy:-2},{dx:2,dy:-2},{dx:-2,dy:2}];
             let possibleMoves = 0;
             moves.forEach(m => {
                 const nx = x + m.dx, ny = y + m.dy;
-                if (nx >= 1 && nx <= GRID_SIZE && ny >= 1 && ny <= GRID_SIZE) {
+                if (nx >= 1 && nx <= 10 && ny >= 1 && ny <= 10) {
                     const cell = document.getElementById(`x${nx}y${ny}`);
-                    if (!cell.classList.contains('clicked')) {
-                        cell.classList.add('clickable');
-                        possibleMoves++;
-                    }
+                    if (!cell.classList.contains('clicked')) { cell.classList.add('clickable'); possibleMoves++; }
                 }
             });
-
             if (possibleMoves === 0 && score > 0) endGame();
         }
 
@@ -251,43 +222,58 @@
         function endGame() {
             clearInterval(timerInterval);
             saveScore(score, timer);
-            
-            // Modern Modal Gösterimi
-            document.getElementById('finalScore').innerText = score;
-            document.getElementById('finalTime').innerText = document.getElementById('timerDisplay').innerText;
-            document.getElementById('finalDate').innerText = new Date().toLocaleDateString('tr-TR');
+            document.getElementById('finalScoreText').innerText = score;
+            document.getElementById('finalTimeText').innerText = document.getElementById('timerDisplay').innerText;
+            document.getElementById('finalDateText').innerText = new Date().toLocaleDateString('tr-TR');
             document.getElementById('resultModal').style.display = 'flex';
+        }
+
+        async function generateAndShare() {
+            const area = document.querySelector("#captureArea");
+            const canvas = await html2canvas(area, { backgroundColor: "#1e293b", scale: 2 });
+            
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], 'hedef100_skor.png', { type: 'image/png' });
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'Hedef 100 Skorum',
+                            text: `Hedef 100 oyununda ${score} puan yaptım! Bakalım beni geçebilecek misin?`,
+                            files: [file]
+                        });
+                    } catch (err) { console.log("Paylaşım iptal edildi."); }
+                } else {
+                    const a = document.createElement('a');
+                    a.download = 'hedef100_skor.png';
+                    a.href = canvas.toDataURL();
+                    a.click();
+                }
+            });
         }
 
         function toggleMute(e) {
             e.stopPropagation();
             if (!isMusicPlaying) {
-                bgMusic.play().then(() => {
-                    isMusicPlaying = true;
-                    document.getElementById('muteBtn').innerText = "MÜZİK: AÇIK";
-                }).catch(e => console.log("Hata:", e));
+                document.getElementById('bgMusic').play();
+                isMusicPlaying = true;
+                document.getElementById('muteBtn').innerText = "🎵 AÇIK";
             } else {
-                bgMusic.pause();
+                document.getElementById('bgMusic').pause();
                 isMusicPlaying = false;
-                document.getElementById('muteBtn').innerText = "MÜZİK: KAPALI";
+                document.getElementById('muteBtn').innerText = "🎵 KAPALI";
             }
         }
 
         function undoMove() {
             if (undoRights <= 0 || history.length <= 1) return;
-            const lastMove = history.pop();
-            const cell = document.getElementById(`x${lastMove.x}y${lastMove.y}`);
-            cell.innerText = '';
-            cell.classList.remove('clicked', 'last-clicked');
+            const last = history.pop();
+            const cell = document.getElementById(`x${last.x}y${last.y}`);
+            cell.innerText = ''; cell.classList.remove('clicked', 'last-clicked');
             undoRights--; score--;
-
-            const newLast = history[history.length - 1];
-            if (newLast) {
-                const newLastCell = document.getElementById(`x${newLast.x}y${newLast.y}`);
-                newLastCell.classList.remove('clicked');
-                newLastCell.classList.add('last-clicked');
-                calculateNextMoves(newLast.x, newLast.y);
-            }
+            const newL = history[history.length - 1];
+            const nlCell = document.getElementById(`x${newL.x}y${newL.y}`);
+            nlCell.classList.remove('clicked'); nlCell.classList.add('last-clicked');
+            calculateNextMoves(newL.x, newL.y);
             updateUI();
         }
 
@@ -298,50 +284,21 @@
         }
 
         function saveScore(s, t) {
-            let scores = JSON.parse(localStorage.getItem('h100ScoresPro') || '[]');
+            let scores = JSON.parse(localStorage.getItem('h100Scores') || '[]');
             scores.push({ score: s, time: t, date: new Date().toLocaleDateString('tr-TR') });
             scores.sort((a, b) => b.score - a.score || a.time - b.time);
-            localStorage.setItem('h100ScoresPro', JSON.stringify(scores.slice(0, 5)));
+            localStorage.setItem('h100Scores', JSON.stringify(scores.slice(0, 5)));
             updateLeaderboard();
         }
 
         function updateLeaderboard() {
-            const scores = JSON.parse(localStorage.getItem('h100ScoresPro') || '[]');
+            const scores = JSON.parse(localStorage.getItem('h100Scores') || '[]');
             const body = document.getElementById('leaderboardBody');
-            body.innerHTML = scores.map((item, index) => `
-                <tr><td>${index + 1}</td><td><b>${item.score}</b></td><td>${item.time}sn</td><td>${item.date}</td></tr>
-            `).join('');
+            body.innerHTML = scores.map((s, i) => `<tr><td>${i+1}.</td><td><b>${s.score} P</b></td><td>${s.time}s</td><td>${s.date}</td></tr>`).join('');
         }
 
-        function closeModal() {
-            document.getElementById('resultModal').style.display = 'none';
-            resetGame();
-        }
-
-        function resetGame() {
-            clearInterval(timerInterval);
-            timerInterval = null; timer = 0;
-            document.getElementById('timerDisplay').innerText = "00:00";
-            score = 0; history = []; undoRights = 3;
-            initBoard();
-        }
-
-        // EKRAN GÖRÜNTÜSÜ ALMA FONKSİYONU
-        function downloadResult() {
-            const btns = document.getElementById('actionBtns');
-            btns.style.display = 'none'; // Kaydederken butonlar görünmesin
-
-            html2canvas(document.querySelector("#captureArea"), {
-                backgroundColor: "#1e293b",
-                borderRadius: 20
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Hedef100_Skorum_${score}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-                btns.style.display = 'flex'; // Butonları geri getir
-            });
-        }
+        function closeModal() { document.getElementById('resultModal').style.display = 'none'; resetGame(); }
+        function resetGame() { clearInterval(timerInterval); timerInterval = null; timer = 0; document.getElementById('timerDisplay').innerText = "00:00"; score = 0; history = []; undoRights = 3; initBoard(); }
 
         initBoard();
     </script>
