@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hedef 100 | Pro Max</title>
+    <title>Hedef 100 | Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
         :root {
@@ -22,21 +21,21 @@
             flex-direction: column; align-items: center; min-height: 100vh; padding: 20px;
         }
 
-        .header-logo {
+        h1 {
             font-family: 'Orbitron', sans-serif; font-size: 2.2rem; margin-bottom: 15px;
             background: linear-gradient(to right, var(--primary), var(--accent));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-transform: uppercase; letter-spacing: 3px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 3px;
         }
 
         .stats-container {
-            display: flex; gap: 10px; margin-bottom: 15px; background: var(--card-bg);
-            padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+            display: flex; gap: 15px; margin-bottom: 15px; background: var(--card-bg);
+            padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .stat-item { text-align: center; min-width: 60px; }
-        .stat-value { display: block; font-size: 1.1rem; font-weight: 700; color: var(--primary); }
-        .stat-label { font-size: 0.6rem; text-transform: uppercase; opacity: 0.7; }
+        .stat-item { text-align: center; min-width: 65px; }
+        .stat-value { display: block; font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; opacity: 0.7; }
 
         #game-board {
             display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px;
@@ -47,250 +46,278 @@
         .cell {
             aspect-ratio: 1/1; background: rgba(255,255,255,0.03); border-radius: 4px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem; font-weight: 600; transition: 0.2s;
-            border: 1px solid rgba(255,255,255,0.05); color: #fff;
+            font-size: 1.1rem; font-weight: 600; transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .cell.clickable { background: rgba(56, 189, 248, 0.15); cursor: pointer; border-color: var(--primary); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-        .cell.clicked { background: var(--secondary); }
-        .cell.last-clicked { background: var(--accent); transform: scale(1.05); box-shadow: 0 0 15px var(--accent); }
+        .cell.clickable {
+            background: rgba(56, 189, 248, 0.15); cursor: pointer;
+            border-color: var(--primary); animation: pulse 1.5s infinite;
+        }
 
-        .controls { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 450px; }
-        .audio-controls { display: flex; gap: 8px; grid-column: span 2; }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        .cell.clicked { background: var(--secondary); color: white; }
+        .cell.last-clicked { background: var(--accent); transform: scale(1.08); box-shadow: 0 0 15px var(--accent); }
+
+        .controls { margin-top: 20px; display: flex; gap: 10px; width: 100%; max-width: 450px; }
         
         button {
-            padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
-            transition: 0.2s; font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: white;
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            font-weight: 700; cursor: pointer; transition: 0.3s;
+            font-family: 'Orbitron', sans-serif; font-size: 0.75rem;
+            color: white;
         }
-        button:active { transform: scale(0.95); }
-        .btn-undo { background: var(--success); }
-        .btn-undo:disabled { background: var(--disabled); opacity: 0.5; cursor: not-allowed; }
-        .btn-reset { background: var(--danger); }
-        .btn-audio { background: #475569; flex: 1; font-size: 0.6rem; }
 
-        #resultModal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95); display: none;
-            align-items: center; justify-content: center; z-index: 1000;
+        .btn-undo { background: var(--success); }
+        /* Geri al hakkı bitince butonun hali */
+        .btn-undo:disabled {
+            background: var(--disabled) !important;
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            filter: grayscale(1);
         }
-        .result-card {
-            background: var(--card-bg); padding: 30px; border-radius: 20px;
-            text-align: center; border: 2px solid var(--primary);
-            width: 90%; max-width: 400px;
+
+        .btn-reset { background: var(--danger); }
+        .btn-audio { background: #475569; flex: 0.5; }
+
+        .leaderboard {
+            margin-top: 30px; width: 100%; max-width: 450px;
+            background: rgba(30, 41, 59, 0.5); padding: 15px; border-radius: 10px;
         }
-        .result-score { font-size: 4rem; font-weight: 800; color: var(--primary); line-height: 1; margin: 10px 0; }
-        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-share { background: var(--secondary); flex: 1; }
-        .btn-replay { background: var(--success); flex: 1; }
+
+        .leaderboard h3 { font-family: 'Orbitron'; font-size: 1rem; margin-bottom: 10px; text-align: center; color: var(--accent); }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { text-align: left; opacity: 0.6; padding-bottom: 5px; }
+        td { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
-<body onclick="unlockAudio()">
+<body>
 
-    <div class="header-logo">HEDEF 100</div>
+    <h1>HEDEF 100</h1>
 
     <div class="stats-container">
-        <div class="stat-item"><span class="stat-value" id="scoreDisplay">0</span><span class="stat-label">SKOR</span></div>
-        <div class="stat-item"><span class="stat-value" id="timerDisplay">00:00</span><span class="stat-label">SÜRE</span></div>
-        <div class="stat-item"><span class="stat-value" id="undoDisplay">3</span><span class="stat-label">HAK</span></div>
+        <div class="stat-item">
+            <span class="stat-value" id="scoreDisplay">0</span>
+            <span class="stat-label">SKOR</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="timerDisplay">00:00</span>
+            <span class="stat-label">SÜRE</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="undoDisplay">3</span>
+            <span class="stat-label">HAK</span>
+        </div>
     </div>
 
     <div id="game-board"></div>
 
     <div class="controls">
-        <div class="audio-controls">
-            <button class="btn-audio" onclick="toggleMusic(event)">🎵 MÜZİK: <span id="musStatus">KAPALI</span></button>
-            <button class="btn-audio" onclick="toggleSFX(event)">🔊 EFEKT: <span id="sfxStatus">AÇIK</span></button>
-        </div>
-        <button class="btn-undo" id="undoBtn" onclick="undoMove(event)">GERİ AL</button>
-        <button class="btn-reset" onclick="resetGame(event)">SIFIRLA</button>
+        <button class="btn-audio" id="muteBtn" onclick="toggleMute()">MÜZİK: KAPALI</button>
+        <button class="btn-undo" id="undoBtn" onclick="undoMove()">GERİ AL</button>
+        <button class="btn-reset" onclick="resetGame()">SIFIRLA</button>
     </div>
 
-    <div id="resultModal">
-        <div class="result-card" id="captureArea">
-            <div class="header-logo" style="font-size: 1.5rem;">HEDEF 100</div>
-            <p>OYUN BİTTİ</p>
-            <div class="result-score" id="finalScore">0</div>
-            <div class="result-meta" id="finalTimeDisplay">00:00 sürede tamamlandı.</div>
-            <div class="modal-buttons">
-                <button class="btn-share" onclick="shareScore()">PAYLAŞ</button>
-                <button class="btn-replay" onclick="closeModal()">TEKRAR</button>
-            </div>
-        </div>
+    <div class="leaderboard">
+        <h3>🏆 EN YÜKSEK SKORLAR</h3>
+        <table id="leaderboardTable">
+            <thead>
+                <tr><th>#</th><th>Skor</th><th>Süre</th><th>Tarih</th></tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+        </table>
     </div>
 
-    <!-- Ses Dosyaları -->
-    <audio id="bgMusic" loop src="https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3"></audio>
-    <audio id="sfxClick" src="https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3"></audio>
-    <audio id="sfxError" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
-    <audio id="sfxUndo" src="https://assets.mixkit.co/sfx/preview/mixkit-fast-double-click-on-mouse-2751.mp3"></audio>
-    <audio id="sfxReset" src="https://assets.mixkit.co/sfx/preview/mixkit-camera-shutter-click-1133.mp3"></audio>
+    <!-- Ses Kaynakları (Eğer bunlar çalışmazsa, tarayıcıda doğrudan linkleri açıp yüklenip yüklenmediğini kontrol edebilirsin) -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="clickSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="errorSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-negative-tone-interface-608.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
-        let score = 0, history = [], undoRights = 3, timer = 0, timerInterval = null;
-        let musicEnabled = false, sfxEnabled = true, audioUnlocked = false;
-
+        const GRID_SIZE = 10;
+        let score = 0, history = [], undoRights = 3, timer = 0, timerInterval = null, isMusicPlaying = false;
+        
+        const board = document.getElementById('game-board');
         const bgMusic = document.getElementById('bgMusic');
-        bgMusic.volume = 0.2;
+        const clickSound = document.getElementById('clickSound');
+        const errorSound = document.getElementById('errorSound');
 
-        // Tarayıcı engelini aşmak için ses sistemini uyandır
-        function unlockAudio() {
-            if (audioUnlocked) return;
-            // Sessizce oynat-dur yap
-            bgMusic.play().then(() => {
-                bgMusic.pause();
-                audioUnlocked = true;
-                console.log("Ses kanalı açıldı.");
-            }).catch(e => {});
-        }
-
-        function playSFX(audioId) {
-            if (!sfxEnabled) return;
-            const sound = document.getElementById(audioId);
-            if (sound) {
-                sound.pause();
-                sound.currentTime = 0;
-                sound.play().catch(() => {});
-            }
-        }
-
-        function toggleMusic(e) {
-            e.stopPropagation();
-            if (!musicEnabled) {
-                bgMusic.play().then(() => {
-                    musicEnabled = true;
-                    document.getElementById('musStatus').innerText = "AÇIK";
-                }).catch(err => alert("Lütfen önce ekranda bir yere dokunun!"));
-            } else {
-                bgMusic.pause();
-                musicEnabled = false;
-                document.getElementById('musStatus').innerText = "KAPALI";
-            }
-            playSFX('sfxClick');
-        }
-
-        function toggleSFX(e) {
-            e.stopPropagation();
-            sfxEnabled = !sfxEnabled;
-            document.getElementById('sfxStatus').innerText = sfxEnabled ? "AÇIK" : "KAPALI";
-            if(sfxEnabled) playSFX('sfxClick');
-        }
+        // Müzik sesini biraz kısalaım ki kullanıcıyı yormasın
+        bgMusic.volume = 0.3;
 
         function initBoard() {
-            const board = document.getElementById('game-board');
             board.innerHTML = '';
-            for (let i = 1; i <= 100; i++) {
-                const y = Math.ceil(i / 10), x = i % 10 || 10;
-                const cell = document.createElement('div');
-                cell.id = `x${x}y${y}`;
-                cell.className = 'cell clickable';
-                cell.onclick = (e) => { e.stopPropagation(); handleMove(x, y); };
-                board.appendChild(cell);
+            for (let y = 1; y <= GRID_SIZE; y++) {
+                for (let x = 1; x <= GRID_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.id = `x${x}y${y}`;
+                    cell.className = 'cell clickable';
+                    cell.onclick = () => handleCellClick(x, y);
+                    board.appendChild(cell);
+                }
             }
+            updateLeaderboard();
+            updateUI();
         }
 
-        function handleMove(x, y) {
-            const cell = document.getElementById(`x${x}y${y}`);
-            if (!cell.classList.contains('clickable')) {
-                playSFX('sfxError');
+        function handleCellClick(x, y) {
+            const target = document.getElementById(`x${x}y${y}`);
+            
+            if (!target.classList.contains('clickable')) {
+                playSound(errorSound);
                 return;
             }
 
             if (score === 0) startTimer();
-            playSFX('sfxClick');
+            playSound(clickSound);
 
-            const last = document.querySelector('.last-clicked');
-            if (last) { last.classList.remove('last-clicked'); last.classList.add('clicked'); }
+            const prevLast = document.querySelector('.last-clicked');
+            if (prevLast) {
+                prevLast.classList.remove('last-clicked');
+                prevLast.classList.add('clicked');
+            }
 
             score++;
-            cell.innerText = score;
-            cell.classList.add('clicked', 'last-clicked');
-            cell.classList.remove('clickable');
-            history.push({x, y});
+            target.innerText = score;
+            target.classList.add('clicked', 'last-clicked');
+            target.classList.remove('clickable');
             
+            history.push({x, y});
             updateUI();
-            checkPossibleMoves(x, y);
+            calculateNextMoves(x, y);
         }
 
-        function checkPossibleMoves(x, y) {
+        function calculateNextMoves(x, y) {
             document.querySelectorAll('.cell.clickable').forEach(c => c.classList.remove('clickable'));
-            const moves = [{dx:3,dy:0},{dx:-3,dy:0},{dx:0,dy:3},{dx:0,dy:-3},{dx:2,dy:2},{dx:-2,dy:-2},{dx:2,dy:-2},{dx:-2,dy:2}];
-            let count = 0;
+            const moves = [
+                {dx:3, dy:0}, {dx:-3, dy:0}, {dx:0, dy:3}, {dx:0, dy:-3},
+                {dx:2, dy:2}, {dx:-2, dy:-2}, {dx:2, dy:-2}, {dx:-2, dy:2}
+            ];
+
+            let possibleMoves = 0;
             moves.forEach(m => {
                 const nx = x + m.dx, ny = y + m.dy;
-                if (nx>0 && nx<11 && ny>0 && ny<11) {
-                    const target = document.getElementById(`x${nx}y${ny}`);
-                    if (!target.classList.contains('clicked')) { target.classList.add('clickable'); count++; }
+                if (nx >= 1 && nx <= GRID_SIZE && ny >= 1 && ny <= GRID_SIZE) {
+                    const cell = document.getElementById(`x${nx}y${ny}`);
+                    if (!cell.classList.contains('clicked')) {
+                        cell.classList.add('clickable');
+                        possibleMoves++;
+                    }
                 }
             });
-            if (count === 0 && score > 0) showResult();
+
+            if (possibleMoves === 0 && score < 100) endGame();
         }
 
-        function undoMove(e) {
-            if (e) e.stopPropagation();
+        function startTimer() {
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                timer++;
+                const mins = String(Math.floor(timer / 60)).padStart(2, '0');
+                const secs = String(timer % 60).padStart(2, '0');
+                document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            saveScore(score, timer);
+            setTimeout(() => alert(`Oyun Bitti! Skorunuz: ${score}`), 500);
+        }
+
+        function toggleMute() {
+            if (!isMusicPlaying) {
+                bgMusic.play().then(() => {
+                    isMusicPlaying = true;
+                    document.getElementById('muteBtn').innerText = "MÜZİK: AÇIK";
+                }).catch(e => console.log("Müzik başlatılamadı:", e));
+            } else {
+                bgMusic.pause();
+                isMusicPlaying = false;
+                document.getElementById('muteBtn').innerText = "MÜZİK: KAPALI";
+            }
+        }
+
+        function playSound(audioElement) {
+            // Sesi başa sar ve oynat (Hızlı tıklamalarda sorun olmaması için)
+            audioElement.currentTime = 0;
+            audioElement.play().catch(e => console.log("Ses oynatılamadı:", e));
+        }
+
+        function undoMove() {
             if (undoRights <= 0 || history.length <= 1) return;
-            
-            playSFX('sfxUndo');
-            const last = history.pop();
-            const cell = document.getElementById(`x${last.x}y${last.y}`);
-            cell.innerText = ''; cell.classList.remove('clicked', 'last-clicked');
-            
-            undoRights--; score--;
-            const prev = history[history.length - 1];
-            const prevCell = document.getElementById(`x${prev.x}y${prev.y}`);
-            prevCell.classList.remove('clicked');
-            prevCell.classList.add('last-clicked');
-            
-            checkPossibleMoves(prev.x, prev.y);
+
+            const lastMove = history.pop();
+            const cell = document.getElementById(`x${lastMove.x}y${lastMove.y}`);
+            cell.innerText = '';
+            cell.classList.remove('clicked', 'last-clicked');
+
+            undoRights--;
+            score--;
+
+            const newLast = history[history.length - 1];
+            if (newLast) {
+                const newLastCell = document.getElementById(`x${newLast.x}y${newLast.y}`);
+                newLastCell.classList.remove('clicked');
+                newLastCell.classList.add('last-clicked');
+                calculateNextMoves(newLast.x, newLast.y);
+            }
+
             updateUI();
         }
 
         function updateUI() {
             document.getElementById('scoreDisplay').innerText = score;
             document.getElementById('undoDisplay').innerText = undoRights;
-            document.getElementById('undoBtn').disabled = (undoRights <= 0 || history.length <= 1);
+            
+            // Butonun inaktiflik kontrolü
+            const undoBtn = document.getElementById('undoBtn');
+            if (undoRights <= 0 || history.length <= 1) {
+                undoBtn.disabled = true;
+            } else {
+                undoBtn.disabled = false;
+            }
         }
 
-        function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                timer++;
-                const m = String(Math.floor(timer/60)).padStart(2,'0'), s = String(timer%60).padStart(2,'0');
-                document.getElementById('timerDisplay').innerText = `${m}:${s}`;
-            }, 1000);
+        function saveScore(s, t) {
+            let scores = JSON.parse(localStorage.getItem('h100ScoresPro') || '[]');
+            scores.push({ score: s, time: t, date: new Date().toLocaleDateString('tr-TR') });
+            scores.sort((a, b) => b.score - a.score || a.time - b.time);
+            localStorage.setItem('h100ScoresPro', JSON.stringify(scores.slice(0, 5)));
+            updateLeaderboard();
         }
 
-        function showResult() {
+        function updateLeaderboard() {
+            const scores = JSON.parse(localStorage.getItem('h100ScoresPro') || '[]');
+            const body = document.getElementById('leaderboardBody');
+            body.innerHTML = scores.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><b>${item.score}</b></td>
+                    <td>${item.time}sn</td>
+                    <td>${item.date}</td>
+                </tr>
+            `).join('');
+        }
+
+        function resetGame() {
             clearInterval(timerInterval);
-            document.getElementById('finalScore').innerText = score;
-            document.getElementById('finalTimeDisplay').innerText = document.getElementById('timerDisplay').innerText + " sürede tamamlandı.";
-            document.getElementById('resultModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('resultModal').style.display = 'none';
-            resetGame();
-        }
-
-        function resetGame(e) {
-            if (e) e.stopPropagation();
-            playSFX('sfxReset');
-            clearInterval(timerInterval);
-            timer = 0; score = 0; undoRights = 3; history = [];
+            timerInterval = null;
+            timer = 0;
             document.getElementById('timerDisplay').innerText = "00:00";
-            initBoard(); updateUI();
-        }
-
-        async function shareScore() {
-            const btns = document.querySelector('.modal-buttons');
-            btns.style.display = 'none';
-            const canvas = await html2canvas(document.querySelector("#captureArea"), { backgroundColor: '#1e293b' });
-            const image = canvas.toDataURL("image/png");
-            const link = document.createElement('a');
-            link.download = `hedef100-skor-${score}.png`;
-            link.href = image;
-            link.click();
-            btns.style.display = 'flex';
+            score = 0;
+            history = [];
+            undoRights = 3;
+            initBoard();
         }
 
         initBoard();
