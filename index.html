@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hedef 100 | Zeka Oyunu</title>
+    <title>Hedef 100 | Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --bg-color: #0f172a; --card-bg: #1e293b; --primary: #38bdf8;
             --secondary: #818cf8; --accent: #f472b6; --success: #22c55e;
-            --danger: #ef4444; --text: #f1f5f9;
+            --danger: #ef4444; --text: #f1f5f9; --disabled: #475569;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
@@ -33,7 +33,7 @@
             padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .stat-item { text-align: center; min-width: 60px; }
+        .stat-item { text-align: center; min-width: 65px; }
         .stat-value { display: block; font-size: 1.2rem; font-weight: 700; color: var(--primary); }
         .stat-label { font-size: 0.65rem; text-transform: uppercase; opacity: 0.7; }
 
@@ -63,14 +63,24 @@
         .controls { margin-top: 20px; display: flex; gap: 10px; width: 100%; max-width: 450px; }
         
         button {
-            flex: 1; padding: 10px; border: none; border-radius: 8px;
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
             font-weight: 700; cursor: pointer; transition: 0.3s;
-            font-family: 'Orbitron', sans-serif; font-size: 0.8rem;
+            font-family: 'Orbitron', sans-serif; font-size: 0.75rem;
+            color: white;
         }
 
-        .btn-undo { background: var(--success); color: white; }
-        .btn-reset { background: var(--danger); color: white; }
-        .btn-audio { background: #475569; color: white; flex: 0.5; }
+        .btn-undo { background: var(--success); }
+        /* Geri al hakkı bitince butonun hali */
+        .btn-undo:disabled {
+            background: var(--disabled) !important;
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            filter: grayscale(1);
+        }
+
+        .btn-reset { background: var(--danger); }
+        .btn-audio { background: #475569; flex: 0.5; }
 
         .leaderboard {
             margin-top: 30px; width: 100%; max-width: 450px;
@@ -82,8 +92,6 @@
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th { text-align: left; opacity: 0.6; padding-bottom: 5px; }
         td { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        @media (max-width: 500px) { h1 { font-size: 1.6rem; } }
     </style>
 </head>
 <body>
@@ -101,14 +109,14 @@
         </div>
         <div class="stat-item">
             <span class="stat-value" id="undoDisplay">3</span>
-            <span class="stat-label">GERİ AL</span>
+            <span class="stat-label">HAK</span>
         </div>
     </div>
 
     <div id="game-board"></div>
 
     <div class="controls">
-        <button class="btn-audio" id="muteBtn" onclick="toggleMute()">🎵 ON</button>
+        <button class="btn-audio" id="muteBtn" onclick="toggleMute()">MÜZİK: KAPALI</button>
         <button class="btn-undo" id="undoBtn" onclick="undoMove()">GERİ AL</button>
         <button class="btn-reset" onclick="resetGame()">SIFIRLA</button>
     </div>
@@ -117,32 +125,34 @@
         <h3>🏆 EN YÜKSEK SKORLAR</h3>
         <table id="leaderboardTable">
             <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Skor</th>
-                    <th>Süre</th>
-                    <th>Tarih</th>
-                </tr>
+                <tr><th>#</th><th>Skor</th><th>Süre</th><th>Tarih</th></tr>
             </thead>
-            <tbody id="leaderboardBody">
-                <!-- Veriler JS ile gelecek -->
-            </tbody>
+            <tbody id="leaderboardBody"></tbody>
         </table>
     </div>
 
-    <!-- Ses Dosyaları (Placeholder linklerdir, kendi dosyalarınla değiştirebilirsin) -->
-    <audio id="bgMusic" loop src="https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3"></audio>
-    <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3"></audio>
-    <audio id="errorSound" src="https://assets.mixkit.co/sfx/preview/mixkit-negative-tone-interface-608.mp3"></audio>
+    <!-- Ses Kaynakları (Eğer bunlar çalışmazsa, tarayıcıda doğrudan linkleri açıp yüklenip yüklenmediğini kontrol edebilirsin) -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="clickSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="errorSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-negative-tone-interface-608.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
         const GRID_SIZE = 10;
-        let score = 0, history = [], undoRights = 3, timer = 0, timerInterval = null, isMuted = true;
+        let score = 0, history = [], undoRights = 3, timer = 0, timerInterval = null, isMusicPlaying = false;
         
         const board = document.getElementById('game-board');
         const bgMusic = document.getElementById('bgMusic');
         const clickSound = document.getElementById('clickSound');
         const errorSound = document.getElementById('errorSound');
+
+        // Müzik sesini biraz kısalaım ki kullanıcıyı yormasın
+        bgMusic.volume = 0.3;
 
         function initBoard() {
             board.innerHTML = '';
@@ -156,10 +166,12 @@
                 }
             }
             updateLeaderboard();
+            updateUI();
         }
 
         function handleCellClick(x, y) {
             const target = document.getElementById(`x${x}y${y}`);
+            
             if (!target.classList.contains('clickable')) {
                 playSound(errorSound);
                 return;
@@ -169,7 +181,10 @@
             playSound(clickSound);
 
             const prevLast = document.querySelector('.last-clicked');
-            if (prevLast) { prevLast.classList.remove('last-clicked'); prevLast.classList.add('clicked'); }
+            if (prevLast) {
+                prevLast.classList.remove('last-clicked');
+                prevLast.classList.add('clicked');
+            }
 
             score++;
             target.innerText = score;
@@ -200,7 +215,7 @@
                 }
             });
 
-            if (possibleMoves === 0 || score === 100) endGame();
+            if (possibleMoves === 0 && score < 100) endGame();
         }
 
         function startTimer() {
@@ -216,62 +231,93 @@
         function endGame() {
             clearInterval(timerInterval);
             saveScore(score, timer);
-            alert(`Oyun Bitti! Skor: ${score} | Süre: ${timer} saniye`);
-        }
-
-        function saveScore(s, t) {
-            let scores = JSON.parse(localStorage.getItem('h100Scores') || '[]');
-            scores.push({ score: s, time: t, date: new Date().toLocaleDateString('tr-TR') });
-            scores.sort((a, b) => b.score - a.score || a.time - b.time);
-            localStorage.setItem('h100Scores', JSON.stringify(scores.slice(0, 5)));
-            updateLeaderboard();
-        }
-
-        function updateLeaderboard() {
-            const scores = JSON.parse(localStorage.getItem('h100Scores') || '[]');
-            const body = document.getElementById('leaderboardBody');
-            body.innerHTML = scores.map((item, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><b>${item.score}</b></td>
-                    <td>${item.time}s</td>
-                    <td>${item.date}</td>
-                </tr>
-            `).join('');
+            setTimeout(() => alert(`Oyun Bitti! Skorunuz: ${score}`), 500);
         }
 
         function toggleMute() {
-            isMuted = !isMuted;
-            document.getElementById('muteBtn').innerText = isMuted ? "🎵 OFF" : "🎵 ON";
-            if (!isMuted) bgMusic.play().catch(() => {}); else bgMusic.pause();
+            if (!isMusicPlaying) {
+                bgMusic.play().then(() => {
+                    isMusicPlaying = true;
+                    document.getElementById('muteBtn').innerText = "MÜZİK: AÇIK";
+                }).catch(e => console.log("Müzik başlatılamadı:", e));
+            } else {
+                bgMusic.pause();
+                isMusicPlaying = false;
+                document.getElementById('muteBtn').innerText = "MÜZİK: KAPALI";
+            }
         }
 
-        function playSound(sound) { if (!isMuted) { sound.currentTime = 0; sound.play(); } }
+        function playSound(audioElement) {
+            // Sesi başa sar ve oynat (Hızlı tıklamalarda sorun olmaması için)
+            audioElement.currentTime = 0;
+            audioElement.play().catch(e => console.log("Ses oynatılamadı:", e));
+        }
 
         function undoMove() {
             if (undoRights <= 0 || history.length <= 1) return;
+
             const lastMove = history.pop();
             const cell = document.getElementById(`x${lastMove.x}y${lastMove.y}`);
-            cell.innerText = ''; cell.classList.remove('clicked', 'last-clicked');
-            undoRights--; score--;
+            cell.innerText = '';
+            cell.classList.remove('clicked', 'last-clicked');
+
+            undoRights--;
+            score--;
+
             const newLast = history[history.length - 1];
-            document.getElementById(`x${newLast.x}y${newLast.y}`).classList.add('last-clicked');
+            if (newLast) {
+                const newLastCell = document.getElementById(`x${newLast.x}y${newLast.y}`);
+                newLastCell.classList.remove('clicked');
+                newLastCell.classList.add('last-clicked');
+                calculateNextMoves(newLast.x, newLast.y);
+            }
+
             updateUI();
-            calculateNextMoves(newLast.x, newLast.y);
         }
 
         function updateUI() {
             document.getElementById('scoreDisplay').innerText = score;
             document.getElementById('undoDisplay').innerText = undoRights;
-            document.getElementById('undoBtn').disabled = (undoRights <= 0 || history.length <= 1);
+            
+            // Butonun inaktiflik kontrolü
+            const undoBtn = document.getElementById('undoBtn');
+            if (undoRights <= 0 || history.length <= 1) {
+                undoBtn.disabled = true;
+            } else {
+                undoBtn.disabled = false;
+            }
+        }
+
+        function saveScore(s, t) {
+            let scores = JSON.parse(localStorage.getItem('h100ScoresPro') || '[]');
+            scores.push({ score: s, time: t, date: new Date().toLocaleDateString('tr-TR') });
+            scores.sort((a, b) => b.score - a.score || a.time - b.time);
+            localStorage.setItem('h100ScoresPro', JSON.stringify(scores.slice(0, 5)));
+            updateLeaderboard();
+        }
+
+        function updateLeaderboard() {
+            const scores = JSON.parse(localStorage.getItem('h100ScoresPro') || '[]');
+            const body = document.getElementById('leaderboardBody');
+            body.innerHTML = scores.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><b>${item.score}</b></td>
+                    <td>${item.time}sn</td>
+                    <td>${item.date}</td>
+                </tr>
+            `).join('');
         }
 
         function resetGame() {
             clearInterval(timerInterval);
-            timerInterval = null; timer = 0;
+            timerInterval = null;
+            timer = 0;
             document.getElementById('timerDisplay').innerText = "00:00";
-            score = 0; history = []; undoRights = 3;
-            initBoard(); updateUI();
+            score = 0;
+            history = [];
+            undoRights = 3;
+            initBoard();
         }
 
         initBoard();
