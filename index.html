@@ -159,20 +159,24 @@
 </div>
 
     <div id="resultModal">
-        <div class="result-card" id="captureArea">
-            <h2 style="font-family: Orbitron; font-size: 1.2rem; color: #38bdf8;">HEDEF 100</h2>
-            <p style="margin-top: 10px; opacity: 0.8;">OYUN TAMAMLANDI</p>
-            <div class="result-score" id="finalScoreText">0</div>
-            <p class="result-msg">"Bakalım beni geçebilecek misin?"</p>
-            <div style="font-size: 0.9rem; margin-bottom: 20px; opacity: 0.7;">
-                Süre: <span id="finalTimeText">00:00</span> | Tarih: <span id="finalDateText"></span>
-            </div>
-            <div class="modal-btns">
-                <button style="background: var(--success);" onclick="generateAndShare()">📱 PAYLAŞ / KAYDET</button>
-                <button style="background: var(--danger);" onclick="closeModal()">KAPAT</button>
-            </div>
+    <div class="result-card" id="captureArea">
+        <h2 style="font-family: Orbitron; font-size: 1.2rem; color: #38bdf8;">HEDEF 100</h2>
+        <p style="margin-top: 10px; opacity: 0.8; font-size: 0.8rem;">OYUN TAMAMLANDI</p>
+        <div class="result-score" id="finalScoreText">0</div>
+        <p class="result-msg">"Bakalım beni geçebilecek misin?"</p>
+        <div style="font-size: 0.85rem; margin-bottom: 15px; opacity: 0.7;">
+            Süre: <span id="finalTimeText">00:00</span> | Tarih: <span id="finalDateText"></span>
+        </div>
+        <!-- Alan Adı İmzası -->
+        <div style="font-family: 'Orbitron'; font-size: 0.75rem; color: var(--primary); opacity: 0.6; margin-bottom: 10px; letter-spacing: 1px;">
+            WWW.HEDEF100.COM
+        </div>
+        <div class="modal-btns">
+            <button style="background: var(--success); flex:1;" onclick="generateAndShare()">📱 PAYLAŞ / KAYDET</button>
+            <button style="background: var(--danger); flex:0.4;" onclick="closeModal()">KAPAT</button>
         </div>
     </div>
+</div>
 
    
 
@@ -278,26 +282,39 @@ function toggleAbout() {
         }
 
         async function generateAndShare() {
-            const area = document.querySelector("#captureArea");
-            const canvas = await html2canvas(area, { backgroundColor: "#1e293b", scale: 2 });
-            canvas.toBlob(async (blob) => {
-                const file = new File([blob], 'hedef100_skor.png', { type: 'image/png' });
-                if (navigator.share) {
-                    try {
-                        await navigator.share({
-                            title: 'Hedef 100 Skorum',
-                            text: `Hedef 100 oyununda ${score} puan yaptım! Bakalım beni geçebilecek misin?`,
-                            files: [file]
-                        });
-                    } catch (err) { console.log("Paylaşım iptal edildi."); }
-                } else {
-                    const a = document.createElement('a');
-                    a.download = 'hedef100_skor.png';
-                    a.href = canvas.toDataURL();
-                    a.click();
-                }
-            });
+    const area = document.querySelector("#captureArea");
+    const btns = document.querySelector(".modal-btns");
+    
+    // Resim alınırken butonları gizle
+    btns.style.display = 'none';
+    
+    const canvas = await html2canvas(area, { 
+        backgroundColor: "#1e293b", 
+        scale: 3, // Daha net görüntü için kaliteyi artırdık
+        borderRadius: 20
+    });
+    
+    // Butonları geri getir
+    btns.style.display = 'flex';
+
+    canvas.toBlob(async (blob) => {
+        const file = new File([blob], 'hedef100_skor.png', { type: 'image/png' });
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Hedef 100 Skorum',
+                    text: `Hedef 100 oyununda ${score} puan yaptım! Bakalım beni geçebilecek misin? \nSite: https://hedef100.com`,
+                    files: [file]
+                });
+            } catch (err) { console.log("Paylaşım iptal edildi."); }
+        } else {
+            const a = document.createElement('a');
+            a.download = `hedef100_skor_${score}.png`;
+            a.href = canvas.toDataURL();
+            a.click();
         }
+    });
+}
 
         function toggleMute(e) {
             e.stopPropagation();
