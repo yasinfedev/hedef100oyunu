@@ -62,7 +62,6 @@
         button {
             padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
             transition: 0.2s; font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: white;
-            display: flex; align-items: center; justify-content: center;
         }
         button:active { transform: scale(0.95); }
         .btn-undo { background: var(--success); }
@@ -112,7 +111,7 @@
             <div class="header-logo" style="font-size: 1.5rem;">HEDEF 100</div>
             <p>OYUN BİTTİ</p>
             <div class="result-score" id="finalScore">0</div>
-            <div class="result-meta" id="finalTime">00:00 sürede tamamlandı.</div>
+            <div class="result-meta" id="finalTimeDisplay">00:00 sürede tamamlandı.</div>
             <div class="modal-buttons">
                 <button class="btn-share" onclick="shareScore()">PAYLAŞ</button>
                 <button class="btn-replay" onclick="closeModal()">TEKRAR</button>
@@ -120,39 +119,29 @@
         </div>
     </div>
 
-    <!-- Ses Dosyaları (Preload ve Crossorigin Ayarlı) -->
-    <audio id="bgMusic" loop preload="auto" crossorigin="anonymous">
-        <source src="https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sfxClick" preload="auto" crossorigin="anonymous">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-typewriter-soft-click-1125.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sfxError" preload="auto" crossorigin="anonymous">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sfxUndo" preload="auto" crossorigin="anonymous">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-fast-double-click-on-mouse-2751.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sfxReset" preload="auto" crossorigin="anonymous">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-camera-shutter-click-1133.mp3" type="audio/mpeg">
-    </audio>
+    <!-- Ses Dosyaları -->
+    <audio id="bgMusic" loop src="https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3"></audio>
+    <audio id="sfxClick" src="https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3"></audio>
+    <audio id="sfxError" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <audio id="sfxUndo" src="https://assets.mixkit.co/sfx/preview/mixkit-fast-double-click-on-mouse-2751.mp3"></audio>
+    <audio id="sfxReset" src="https://assets.mixkit.co/sfx/preview/mixkit-camera-shutter-click-1133.mp3"></audio>
 
     <script>
         let score = 0, history = [], undoRights = 3, timer = 0, timerInterval = null;
         let musicEnabled = false, sfxEnabled = true, audioUnlocked = false;
 
         const bgMusic = document.getElementById('bgMusic');
-        bgMusic.volume = 0.15;
+        bgMusic.volume = 0.2;
 
-        // KRİTİK: Tarayıcı ses engelini aşmak için ilk dokunuşu yakala
+        // Tarayıcı engelini aşmak için ses sistemini uyandır
         function unlockAudio() {
             if (audioUnlocked) return;
-            // Boş ses oynatarak kanalı aç
+            // Sessizce oynat-dur yap
             bgMusic.play().then(() => {
                 bgMusic.pause();
                 audioUnlocked = true;
-                console.log("Ses kanalı aktif.");
-            }).catch(e => console.log("Etkileşim bekleniyor..."));
+                console.log("Ses kanalı açıldı.");
+            }).catch(e => {});
         }
 
         function playSFX(audioId) {
@@ -161,15 +150,22 @@
             if (sound) {
                 sound.pause();
                 sound.currentTime = 0;
-                sound.play().catch(e => console.warn("Ses oynatılamadı:", e));
+                sound.play().catch(() => {});
             }
         }
 
         function toggleMusic(e) {
             e.stopPropagation();
-            musicEnabled = !musicEnabled;
-            document.getElementById('musStatus').innerText = musicEnabled ? "AÇIK" : "KAPALI";
-            musicEnabled ? bgMusic.play() : bgMusic.pause();
+            if (!musicEnabled) {
+                bgMusic.play().then(() => {
+                    musicEnabled = true;
+                    document.getElementById('musStatus').innerText = "AÇIK";
+                }).catch(err => alert("Lütfen önce ekranda bir yere dokunun!"));
+            } else {
+                bgMusic.pause();
+                musicEnabled = false;
+                document.getElementById('musStatus').innerText = "KAPALI";
+            }
             playSFX('sfxClick');
         }
 
@@ -237,12 +233,9 @@
             playSFX('sfxUndo');
             const last = history.pop();
             const cell = document.getElementById(`x${last.x}y${last.y}`);
-            cell.innerText = ''; 
-            cell.classList.remove('clicked', 'last-clicked');
+            cell.innerText = ''; cell.classList.remove('clicked', 'last-clicked');
             
-            undoRights--; 
-            score--;
-            
+            undoRights--; score--;
             const prev = history[history.length - 1];
             const prevCell = document.getElementById(`x${prev.x}y${prev.y}`);
             prevCell.classList.remove('clicked');
@@ -270,7 +263,7 @@
         function showResult() {
             clearInterval(timerInterval);
             document.getElementById('finalScore').innerText = score;
-            document.getElementById('finalTime').innerText = document.getElementById('timerDisplay').innerText + " sürede tamamlandı.";
+            document.getElementById('finalTimeDisplay').innerText = document.getElementById('timerDisplay').innerText + " sürede tamamlandı.";
             document.getElementById('resultModal').style.display = 'flex';
         }
 
@@ -291,9 +284,7 @@
         async function shareScore() {
             const btns = document.querySelector('.modal-buttons');
             btns.style.display = 'none';
-            const canvas = await html2canvas(document.querySelector("#captureArea"), {
-                backgroundColor: '#1e293b'
-            });
+            const canvas = await html2canvas(document.querySelector("#captureArea"), { backgroundColor: '#1e293b' });
             const image = canvas.toDataURL("image/png");
             const link = document.createElement('a');
             link.download = `hedef100-skor-${score}.png`;
