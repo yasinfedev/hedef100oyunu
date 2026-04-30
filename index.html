@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hedef 100 | Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
-    <!-- Ekran görüntüsü kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
@@ -29,6 +28,22 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-transform: uppercase; letter-spacing: 3px;
         }
+
+        /* AKORDİYON NASIL OYNANIR */
+        .how-to-play {
+            width: 100%; max-width: 450px; margin-bottom: 15px;
+            border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; overflow: hidden;
+        }
+        .acc-header {
+            width: 100%; background: var(--card-bg); padding: 12px; color: var(--primary);
+            font-family: 'Orbitron'; font-size: 0.7rem; border: none; cursor: pointer;
+            text-align: left; display: flex; justify-content: space-between; align-items: center;
+        }
+        .acc-content {
+            max-height: 0; overflow: hidden; transition: 0.3s ease-out;
+            background: rgba(30, 41, 59, 0.5); font-size: 0.8rem; line-height: 1.5;
+        }
+        .acc-content.open { max-height: 300px; padding: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
 
         .stats-container {
             display: flex; gap: 15px; margin-bottom: 15px; background: var(--card-bg);
@@ -82,7 +97,6 @@
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         td { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        /* SONUÇ MODAL */
         #resultModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.95); display: none;
@@ -101,6 +115,17 @@
 <body onclick="unlockAudio()">
 
     <h1>HEDEF 100</h1>
+
+    <div class="how-to-play">
+        <button class="acc-header" onclick="toggleAcc()">NASIL OYNANIR? <span id="accIcon">▼</span></button>
+        <div id="accContent" class="acc-content">
+            • <b>Başlangıç:</b> İstediğiniz kareden 1 yazarak başlayın.<br>
+            • <b>Yatay/Dikey:</b> Bir sonraki sayı için 2 kare atlayıp 3. kareye gidebilirsiniz.<br>
+            • <b>Çapraz:</b> Bir sonraki sayı için 1 kare atlayıp 2. kareye gidebilirsiniz.<br>
+            • <b>Geri Al:</b> Sadece 3 hamle geri alma hakkınız var, stratejik kullanın!<br>
+            • <b>Hedef:</b> 100 kareyi de doldurmak. Kolay gelsin!
+        </div>
+    </div>
 
     <div class="stats-container">
         <div class="stat-item"><span class="stat-value" id="scoreDisplay">0</span><span class="stat-label">SKOR</span></div>
@@ -123,7 +148,6 @@
         </table>
     </div>
 
-    <!-- SONUÇ EKRANI -->
     <div id="resultModal">
         <div class="result-card" id="captureArea">
             <h2 style="font-family: Orbitron; font-size: 1.2rem; color: #38bdf8;">HEDEF 100</h2>
@@ -140,7 +164,6 @@
         </div>
     </div>
 
-    <!-- Sesler -->
     <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 
     <script>
@@ -148,9 +171,15 @@
         let score = 0, history = [], undoRights = 3, timer = 0, timerInterval = null, isMusicPlaying = false;
         let audioUnlocked = false;
 
-        // Ses Efektleri
         const clickSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3');
         const errorSfx = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-negative-tone-interface-608.mp3');
+
+        function toggleAcc() {
+            const content = document.getElementById('accContent');
+            const icon = document.getElementById('accIcon');
+            content.classList.toggle('open');
+            icon.innerText = content.classList.contains('open') ? '▲' : '▼';
+        }
 
         function unlockAudio() {
             if (audioUnlocked) return;
@@ -231,7 +260,6 @@
         async function generateAndShare() {
             const area = document.querySelector("#captureArea");
             const canvas = await html2canvas(area, { backgroundColor: "#1e293b", scale: 2 });
-            
             canvas.toBlob(async (blob) => {
                 const file = new File([blob], 'hedef100_skor.png', { type: 'image/png' });
                 if (navigator.share) {
@@ -253,12 +281,13 @@
 
         function toggleMute(e) {
             e.stopPropagation();
+            const music = document.getElementById('bgMusic');
             if (!isMusicPlaying) {
-                document.getElementById('bgMusic').play();
+                music.play();
                 isMusicPlaying = true;
                 document.getElementById('muteBtn').innerText = "🎵 AÇIK";
             } else {
-                document.getElementById('bgMusic').pause();
+                music.pause();
                 isMusicPlaying = false;
                 document.getElementById('muteBtn').innerText = "🎵 KAPALI";
             }
