@@ -148,7 +148,15 @@
         </table>
     </div>
 
-     
+     <!-- KİM YAPTI BÖLÜMÜ -->
+<div class="how-to-play" style="margin-top: 15px; border-color: rgba(129, 140, 248, 0.3);">
+    <button class="acc-header" onclick="toggleAbout()" style="color: var(--secondary);">
+        KİM YAPTI? <span id="aboutIcon">▼</span>
+    </button>
+    <div id="aboutContent" class="acc-content" style="text-align: center; font-family: 'Orbitron';">
+        2026 © Uzm.Dr.Yasin Yıldız
+    </div>
+</div>
 
     <div id="resultModal">
         <div class="result-card" id="captureArea">
@@ -185,6 +193,14 @@
             icon.innerText = content.classList.contains('open') ? '▲' : '▼';
         }
 
+// Kim Yaptı bölümü için ayrı fonksiyon
+function toggleAbout() {
+    const content = document.getElementById('aboutContent');
+    const icon = document.getElementById('aboutIcon');
+    content.classList.toggle('open');
+    icon.innerText = content.classList.contains('open') ? '▲' : '▼';
+}
+        
         function unlockAudio() {
             if (audioUnlocked) return;
             clickSfx.play().then(() => { clickSfx.pause(); audioUnlocked = true; });
